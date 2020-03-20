@@ -214,7 +214,7 @@ else ()
   set(GECODE_THREADS_PTHREADS 1)
 endif ()
 
-option(ENABLE_GIST "Enable gist" OFF)
+option(ENABLE_GIST "Enable gist" ON)
 if (ENABLE_GIST)
   set(GECODE_USE_QT TRUE)
 else()
@@ -469,10 +469,9 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-option(BUILD_EXAMPLES "Build examples." OFF) 
-if (${BUILD_EXAMPLES})
-  add_subdirectory(examples)
-endif()
+
+add_subdirectory(examples)
+
 
 enable_testing()
 add_test(test gecode-test

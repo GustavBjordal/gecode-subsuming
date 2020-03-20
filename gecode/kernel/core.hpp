@@ -790,6 +790,9 @@ namespace Gecode {
     /// Group of propagators not in any user-defined group
     GECODE_KERNEL_EXPORT
     static PropagatorGroup def;
+    /// Group of propagators that are softened before failing
+    GECODE_KERNEL_EXPORT
+    static PropagatorGroup soft_subsume;
   };
 
   /**
@@ -4039,7 +4042,8 @@ namespace Gecode {
   forceinline void
   Space::enqueue(Propagator* p) {
     ActorLink::cast(p)->unlink();
-    ActorLink* c = &pc.p.queue[p->cost(*this,p->u.med).ac];
+//     ActorLink* c = &pc.p.queue[p->group()!=PropagatorGroup::soft_subsume?p->cost(*this,p->u.med).ac : PropCost::AC_CRAZY_HI];
+    ActorLink *c = &pc.p.queue[p->cost(*this, p->u.med).ac];
     c->tail(ActorLink::cast(p));
     if (c > pc.p.active)
       pc.p.active = c;

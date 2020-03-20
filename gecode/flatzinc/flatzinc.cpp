@@ -789,6 +789,9 @@ namespace Gecode { namespace FlatZinc {
       iv_lns.update(*this, f.iv_lns);
       intVarCount = f.intVarCount;
 
+      total_viol.update(*this, f.total_viol);
+      combined_obj.update(*this, f.combined_obj);
+
       if (needAuxVars) {
         IntVarArgs iva;
         for (int i=0; i<f.iv_aux.size(); i++) {
@@ -865,6 +868,11 @@ namespace Gecode { namespace FlatZinc {
     boolVarCount = 0;
     bv = BoolVarArray(*this, boolVars);
     bv_introduced = std::vector<bool>(2*boolVars);
+
+    // //TODO:
+    total_viol = IntVar(*this, 0, Int::Limits::max);
+    combined_obj = IntVar(*this, Int::Limits::min, Int::Limits::max);
+    viol_vars = std::vector<IntVar>();
 #ifdef GECODE_HAS_SET_VARS
     setVarCount = 0;
     sv = SetVarArray(*this, setVars);
@@ -1004,7 +1012,6 @@ namespace Gecode { namespace FlatZinc {
   FlatZincSpace::postConstraints(std::vector<ConExpr*>& ces) {
     ConExprOrder ceo;
     std::sort(ces.begin(), ces.end(), ceo);
-
     for (unsigned int i=0; i<ces.size(); i++) {
       const ConExpr& ce = *ces[i];
       try {
@@ -1874,6 +1881,7 @@ namespace Gecode { namespace FlatZinc {
       while (FlatZincSpace* next_sol = se.next()) {
         delete sol;
         sol = next_sol;
+        out << sol->total_viol.min() << " " << sol->total_viol.max() << std::endl;
         if (printAll) {
           sol->print(out, p);
           out << "----------" << std::endl;
@@ -1966,6 +1974,30 @@ namespace Gecode { namespace FlatZinc {
   void
   FlatZincSpace::run(std::ostream& out, const Printer& p,
                       const FlatZincOptions& opt, Support::Timer& t_total) {
+    // Update objective var to consider violation vars.
+    if(!viol_vars.empty()){
+      IntVarArgs v;
+      while (!viol_vars.empty()) {
+        v << viol_vars.back();
+        viol_vars.pop_back();
+      }
+      rel(*this, total_viol == sum(v));
+
+      if (_method == MIN)
+        rel(*this, combined_obj == total_viol * 1000 + iv[_optVar]);
+      else if(_method == MAX)
+        rel(*this, combined_obj == total_viol * 1000 - iv[_optVar]);
+      else{
+        rel(*this, combined_obj == total_viol);
+        _method = MIN;
+      }
+    } else {
+        if (_method == MIN)
+          rel(*this, combined_obj == iv[_optVar]);
+        else if(_method == MAX)
+          rel(*this, combined_obj == -iv[_optVar]);
+    }
+    
     switch (_method) {
     case MIN:
     case MAX:
@@ -1980,12 +2012,13 @@ namespace Gecode { namespace FlatZinc {
   void
   FlatZincSpace::constrain(const Space& s) {
     if (_optVarIsInt) {
-      if (_method == MIN)
-        rel(*this, iv[_optVar], IRT_LE,
-                   static_cast<const FlatZincSpace*>(&s)->iv[_optVar].val());
-      else if (_method == MAX)
-        rel(*this, iv[_optVar], IRT_GR,
-                   static_cast<const FlatZincSpace*>(&s)->iv[_optVar].val());
+      // if (_method == MIN)
+      //   rel(*this, iv[_optVar], IRT_LE,
+      //              static_cast<const FlatZincSpace*>(&s)->iv[_optVar].val());
+      // else if (_method == MAX)
+      //   rel(*this, iv[_optVar], IRT_GR,
+      //              static_cast<const FlatZincSpace*>(&s)->iv[_optVar].val());
+      rel(*this, combined_obj, IRT_LE, static_cast<const FlatZincSpace*>(&s)->combined_obj.val());
     } else {
 #ifdef GECODE_HAS_FLOAT_VARS
       if (_method == MIN)

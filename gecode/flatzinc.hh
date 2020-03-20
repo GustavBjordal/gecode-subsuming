@@ -519,6 +519,14 @@ namespace Gecode { namespace FlatZinc {
 #endif
     /// Whether the introduced variables still need to be copied
     bool needAuxVars;
+
+    /// Violation variables from auto-softening.
+    std::vector<Gecode::IntVar> viol_vars;
+
+    Gecode::IntVar total_viol;
+    /// todo: make private:
+    Gecode::IntVar combined_obj;
+
     /// Construct empty space
     FlatZincSpace(Rnd& random = defrnd);
 

@@ -194,8 +194,10 @@ namespace Gecode { namespace FlatZinc {
     }
 
     /* linear (in-)equations */
-    void p_int_lin_CMP(FlatZincSpace& s, IntRelType irt, const ConExpr& ce,
+    void p_int_lin_CMP(Home h, IntRelType irt, const ConExpr& ce,
                        AST::Node* ann) {
+
+      FlatZincSpace &s = static_cast<FlatZincSpace&>(static_cast<Space&>(h));
       IntArgs ia = s.arg2intargs(ce[0]);
       int singleIntVar;
       if (s.isBoolArray(ce[1],singleIntVar)) {
@@ -210,22 +212,23 @@ namespace Gecode { namespace FlatZinc {
                 ia_tmp[count++] = ia[singleIntVar] == -1 ? ia[i] : -ia[i];
             }
             IntRelType t = (ia[singleIntVar] == -1 ? irt : swap(irt));
-            linear(s, ia_tmp, iv, t, siv, s.ann2ipl(ann));
+            linear(h, ia_tmp, iv, t, siv, s.ann2ipl(ann));
           } else {
             IntVarArgs iv = s.arg2intvarargs(ce[1]);
-            linear(s, ia, iv, irt, ce[2]->getInt(), s.ann2ipl(ann));
+            linear(h, ia, iv, irt, ce[2]->getInt(), s.ann2ipl(ann));
           }
         } else {
           BoolVarArgs iv = s.arg2boolvarargs(ce[1]);
-          linear(s, ia, iv, irt, ce[2]->getInt(), s.ann2ipl(ann));
+          linear(h, ia, iv, irt, ce[2]->getInt(), s.ann2ipl(ann));
         }
       } else {
         IntVarArgs iv = s.arg2intvarargs(ce[1]);
-        linear(s, ia, iv, irt, ce[2]->getInt(), s.ann2ipl(ann));
+        linear(h, ia, iv, irt, ce[2]->getInt(), s.ann2ipl(ann));
       }
     }
-    void p_int_lin_CMP_reif(FlatZincSpace& s, IntRelType irt, ReifyMode rm,
-                            const ConExpr& ce, AST::Node* ann) {
+
+
+    void p_int_lin_CMP_reif(FlatZincSpace& s, IntRelType irt, ReifyMode rm, const ConExpr& ce, AST::Node* ann) {
       if (rm == RM_EQV && ce[2]->isBool()) {
         if (ce[2]->getBool()) {
           p_int_lin_CMP(s, irt, ce, ann);
@@ -267,8 +270,20 @@ namespace Gecode { namespace FlatZinc {
                s.ann2ipl(ann));
       }
     }
+
     void p_int_lin_eq(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      p_int_lin_CMP(s, IRT_EQ, ce, ann);
+      if(ann->hasAtom("soften")){
+        std::cout << "Detected soft constraint" << std::endl;
+        //TODO: change space to subsuming home.
+        p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_EQ, ce, ann);
+        //Post penalty
+        IntArgs ia = s.arg2intargs(ce[0]);
+        IntVarArgs iv = s.arg2intvarargs(ce[1]);
+        int is = ce[2]->getInt();
+        s.viol_vars.push_back(expr(s, abs(is - sum(ia, iv)))); // violation
+      }else{
+        p_int_lin_CMP(s, IRT_EQ, ce, ann);
+      }
     }
     void p_int_lin_eq_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
       p_int_lin_CMP_reif(s, IRT_EQ, RM_EQV, ce, ann);
@@ -286,8 +301,24 @@ namespace Gecode { namespace FlatZinc {
       p_int_lin_CMP_reif(s, IRT_NQ, RM_IMP, ce, ann);
     }
     void p_int_lin_le(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      p_int_lin_CMP(s, IRT_LQ, ce, ann);
-    }
+      if (ann->hasAtom("soften"))
+      {
+        std::cout << "Detected soft constraint" << std::endl;
+        //TODO: change space to subsuming home.
+          p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_LQ, ce, ann);
+          //Post penalty
+          IntArgs ia = s.arg2intargs(ce[0]);
+          IntVarArgs iv = s.arg2intvarargs(ce[1]);
+          int is = ce[2]->getInt();
+        s.viol_vars.push_back(expr(s, max(0, sum(ia, iv) - is))); // violation
+        
+//         s.viol_vars.push_back(expr(s, max(0, sum(ia, iv)))); // violation
+      }
+      else
+      {
+        p_int_lin_CMP(s, IRT_LQ, ce, ann);
+      }
+      }
     void p_int_lin_le_reif(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
       p_int_lin_CMP_reif(s, IRT_LQ, RM_EQV, ce, ann);
     }

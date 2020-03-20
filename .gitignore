@@ -1,4 +1,7 @@
 *~
+.DS_Store
+examples backup
+build
 config.log
 config.status
 Makefile
@@ -103,3 +106,4 @@ examples/sudoku-advanced
 examples/tsp
 examples/warehouses
 examples/word-square
+.vscode/settings.json
