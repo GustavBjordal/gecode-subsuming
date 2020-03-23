@@ -12,7 +12,7 @@ array[Cities,1..2] of int: time_window;
 array[Cities] of var Cities: pred;
 % array[Cities] of var Cities: succ;
 
-constraint circuit(pred);
+constraint circuit(pred) ::domain;
 % constraint inverse(succ,pred);
 
 array[Cities] of var 0..horizon: arrival_time;
@@ -38,6 +38,12 @@ constraint forall(i in Cities)(
 var int: obj;
 constraint obj = sum(i in Cities)(distance[pred[i],i]);
 
+% array[Cities] of var 0..horizon: pred_dist;
+% constraint pred_dist[depot] = 0;
+% constraint forall(i in Cities where i != depot)(
+%   (pred_dist[i] = distance[pred[i],i]) :: domain
+% );
+
 % output [show(obj) ++ "\n"] ++ [ show(i-1 ) ++ " " | i in arg_sort(fix(arrival_time))];
 
 include "gecode.mzn";
@@ -45,7 +51,8 @@ include "gecode.mzn";
 solve 
 ::relax_and_reconstruct(pred, 70)
 :: seq_search([
-int_search(pred, first_fail, indomain_random, complete),
+% int_search(pred_dist, max_regret, indomain_min, complete),
+int_search(pred, dom_w_deg, indomain_random, complete),
                int_search(arrival_time,input_order, indomain_max, complete),
               ]) 
 minimize obj;

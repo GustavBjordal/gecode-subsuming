@@ -110,3 +110,4 @@ examples/word-square
 
 xcode/*
 build/*
+gecode.code-workspace

@@ -44,7 +44,7 @@ array [cars]    of var configurations:         seq_confs;
 array [options, cars]  of var 0..1:            b_seq_confs; % = array2d(options, cars, [ confs[seq_confs[c], o] | o in options, c in cars ]);
 
 constraint forall(o in options, c in cars)(
-b_seq_confs[o,c] = confs[seq_confs[c],o]
+b_seq_confs[o,c] = confs[seq_confs[c],o] ::domain
 );
 
 constraint global_cardinality_closed(seq_confs, configurations, n_cars_by_confs);
