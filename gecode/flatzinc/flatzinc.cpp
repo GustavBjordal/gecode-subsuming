@@ -1975,6 +1975,8 @@ namespace Gecode { namespace FlatZinc {
   FlatZincSpace::run(std::ostream& out, const Printer& p,
                       const FlatZincOptions& opt, Support::Timer& t_total) {
     // Update objective var to consider violation vars.
+    // trace(*this, iv);
+    
     if(!viol_vars.empty()){
       IntVarArgs v;
       while (!viol_vars.empty()) {
@@ -1984,9 +1986,9 @@ namespace Gecode { namespace FlatZinc {
       rel(*this, total_viol == sum(v));
 
       if (_method == MIN)
-        rel(*this, combined_obj == total_viol * 1000 + iv[_optVar]);
+        rel(*this, combined_obj == total_viol * 5000 + iv[_optVar]);
       else if(_method == MAX)
-        rel(*this, combined_obj == total_viol * 1000 - iv[_optVar]);
+        rel(*this, combined_obj == total_viol * 5000 - iv[_optVar]);
       else{
         rel(*this, combined_obj == total_viol);
         _method = MIN;
@@ -2019,6 +2021,8 @@ namespace Gecode { namespace FlatZinc {
       //   rel(*this, iv[_optVar], IRT_GR,
       //              static_cast<const FlatZincSpace*>(&s)->iv[_optVar].val());
       rel(*this, combined_obj, IRT_LE, static_cast<const FlatZincSpace*>(&s)->combined_obj.val());
+      if(static_cast<const FlatZincSpace*>(&s)->total_viol.val() != 0)
+        rel(*this, total_viol, IRT_LE, static_cast<const FlatZincSpace*>(&s)->total_viol.val());
     } else {
 #ifdef GECODE_HAS_FLOAT_VARS
       if (_method == MIN)
