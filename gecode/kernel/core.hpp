@@ -4042,8 +4042,11 @@ namespace Gecode {
   forceinline void
   Space::enqueue(Propagator* p) {
     ActorLink::cast(p)->unlink();
-//     ActorLink* c = &pc.p.queue[p->group()!=PropagatorGroup::soft_subsume?p->cost(*this,p->u.med).ac : PropCost::AC_CRAZY_HI];
-    ActorLink *c = &pc.p.queue[p->cost(*this, p->u.med).ac];
+    ActorLink* c = &pc.p.queue[
+      p->group()!=PropagatorGroup::soft_subsume?
+      p->cost(*this,p->u.med).ac : 
+      PropCost::AC_CRAZY_HI];
+    // ActorLink *c = &pc.p.queue[p->cost(*this, p->u.med).ac];
     c->tail(ActorLink::cast(p));
     if (c > pc.p.active)
       pc.p.active = c;

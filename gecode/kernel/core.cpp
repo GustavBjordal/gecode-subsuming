@@ -240,16 +240,7 @@ SpaceStatus Space::status(StatusStatistics& stat) {
       p->u.med = 0;
       switch (p->propagate(*this, med_o)) {
         case ES_FAILED:
-          if (p->group() == PropagatorGroup::soft_subsume) {
-            // propagator cleanup:
-            this->ES_SUBSUMED(*p);
-            // kernel cleanup:
-            p->unlink();
-            rfree(p, p->u.size);
-            goto d_stable_or_unstable;
-          } else {
             goto failed;
-          }
         case ES_NOFIX:
           // Find next, if possible
           if (p->u.med != 0) {
@@ -490,29 +481,39 @@ SpaceStatus Space::status(StatusStatistics& stat) {
 
   // Process failure
 failed:
-  // Count failure
-  ssd.data().gpi.fail(p->gpi());
-  // Mark as failed
-  fail();
-  // Propagate top priority propagators
-  ActorLink* e = &pc.p.queue[PropCost::AC_RECORD];
-  for (ActorLink* a = e->next(); a != e; a = a->next()) {
-    Propagator* top = Propagator::cast(a);
-    // Keep old modification event delta
-    ModEventDelta top_med_o = top->u.med;
-    // Clear med but leave propagator in queue
-    top->u.med = 0;
-    switch (top->propagate(*this, top_med_o)) {
-      case ES_FIX:
-        break;
-      case __ES_SUBSUMED:
-        break;
-      default:
-        GECODE_NEVER;
+  //Ignore failure of soft subsume constraints and fail them instead.
+  if (p->group() == PropagatorGroup::soft_subsume) {
+    // propagator cleanup:
+    this->ES_SUBSUMED(*p);
+    // kernel cleanup:
+    p->unlink();
+    rfree(p, p->u.size);
+    goto d_stable_or_unstable;
+  } else {
+    // Count failure
+    ssd.data().gpi.fail(p->gpi());
+    // Mark as failed
+    fail();
+    // Propagate top priority propagators
+    ActorLink* e = &pc.p.queue[PropCost::AC_RECORD];
+    for (ActorLink* a = e->next(); a != e; a = a->next()) {
+      Propagator* top = Propagator::cast(a);
+      // Keep old modification event delta
+      ModEventDelta top_med_o = top->u.med;
+      // Clear med but leave propagator in queue
+      top->u.med = 0;
+      switch (top->propagate(*this, top_med_o)) {
+        case ES_FIX:
+          break;
+        case __ES_SUBSUMED:
+          break;
+        default:
+          GECODE_NEVER;
+      }
     }
+    return SS_FAILED;
   }
-  return SS_FAILED;
-}
+  }
 
 const Choice* Space::choice(void) {
   if (!stable()) throw SpaceNotStable("Space::choice");
