@@ -153,16 +153,25 @@ namespace Gecode { namespace Int {
 
   ModEvent
   IntVarImp::eq_full(Space& home, int m) {
-    dom.min(m); dom.max(m);
+
     if (!range()) {
       bool failed = false;
       RangeList* p = nullptr;
       RangeList* c = fst();
       while (m > c->max()) {
-        RangeList* n=c->next(p); c->fix(n); p=c; c=n;
+        RangeList* n=c->next(p); p=c; c=n;
       }
-      if (m < c->min())
-        failed = true;
+      if (m < c->min()) return fail(home);
+      dom.min(m);
+      dom.max(m);
+      p = nullptr;
+      c = fst();
+      while (m > c->max()) {
+        RangeList* n = c->next(p);
+        c->fix(n);
+        p = c;
+        c = n;
+      }
       while (c != nullptr) {
         RangeList* n=c->next(p); c->fix(n); p=c; c=n;
       }
@@ -171,6 +180,9 @@ namespace Gecode { namespace Int {
       fst(nullptr); holes = 0;
       if (failed)
         return fail(home);
+    }else{
+      dom.min(m);
+      dom.max(m);
     }
     IntDelta d;
     return notify(home,ME_INT_VAL,d);
