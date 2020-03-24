@@ -397,11 +397,11 @@ SpaceStatus Space::status(StatusStatistics& stat) {
       med_o = p->u.med;
       // Clear med but leave propagator in queue
       p->u.med = 0;
-      std::cout << p->id()  << " " << typeid(*p).name() << std::endl;
+      //std::cout << p->id()  << " " << typeid(*p).name() << std::endl;
       switch (p->propagate(*this, med_o)) {
         case ES_FAILED:
           if (p->group() == PropagatorGroup::soft_subsume) {
-            std::cout << "Subsumed " << p->id()  << " " << typeid(*p).name() << std::endl;
+            //std::cout << "Subsumed " << p->id()  << " " << typeid(*p).name() << std::endl;
             // propagator cleanup:
             this->ES_SUBSUMED(*p);
             // kernel cleanup:
@@ -883,7 +883,7 @@ BrancherGroup BrancherGroup::def(GROUPID_DEF);
 unsigned int Group::next = GROUPID_DEF + 1;
 Support::Mutex Group::m;
 
-PropagatorGroup PropagatorGroup::soft_subsume(42);
+PropagatorGroup PropagatorGroup::soft_subsume;
 
 Group::Group(void) {
   {
