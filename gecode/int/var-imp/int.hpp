@@ -676,7 +676,7 @@ namespace Gecode { namespace Int {
   template<class I>
   forceinline ModEvent
   IntVarImp::minus_r(Space& home, I& i, bool depends) {
-    if (depends) {
+    if (true) {
       IntVarImpFwd j(this);
       Iter::Ranges::Diff<IntVarImpFwd,I> ij(j,i);
       return narrow_r(home,ij,true);
@@ -847,7 +847,7 @@ namespace Gecode { namespace Int {
   template<class I>
   forceinline ModEvent
   IntVarImp::minus_v(Space& home, I& i, bool depends) {
-    if (depends) {
+    if (true) {
       Iter::Values::ToRanges<I> r(i);
       return minus_r(home, r, true);
     }
