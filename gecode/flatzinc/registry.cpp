@@ -1024,22 +1024,47 @@ namespace Gecode { namespace FlatZinc {
       count(s, x, y, cover, ipl);
     }
 
-    void p_global_cardinality_low_up_closed(FlatZincSpace& s,
-                                            const ConExpr& ce,
+    void p_global_cardinality_low_up_closed(FlatZincSpace& s, const ConExpr& ce,
                                             AST::Node* ann) {
-      IntVarArgs x = s.arg2intvarargs(ce[0]);
-      IntArgs cover = s.arg2intargs(ce[1]);
+      if (ann->hasAtom("soften")) {
+        std::cout << "Detected soft gcc_low_up_closed" << std::endl;
 
-      IntArgs lbound = s.arg2intargs(ce[2]);
-      IntArgs ubound = s.arg2intargs(ce[3]);
-      IntSetArgs y(cover.size());
-      for (int i=cover.size(); i--;)
-        y[i] = IntSet(lbound[i],ubound[i]);
-      unshare(s, x);
-      IntPropLevel ipl = s.ann2ipl(ann);
-      if (ipl==IPL_DEF)
-        ipl=IPL_BND;
-      count(s, x, y, cover, ipl);
+        IntVarArgs x = s.arg2intvarargs(ce[0]);
+        IntArgs cover = s.arg2intargs(ce[1]);
+
+        IntArgs lbound = s.arg2intargs(ce[2]);
+        IntArgs ubound = s.arg2intargs(ce[3]);
+        IntSetArgs y(cover.size());
+        for (int i = cover.size(); i--;) y[i] = IntSet(lbound[i], ubound[i]);
+        unshare(s, x);
+        IntPropLevel ipl = s.ann2ipl(ann);
+        if (ipl == IPL_DEF) ipl = IPL_BND;
+        count(PropagatorGroup::soft_subsume(s), x, y, cover, ipl);
+        //Add violation:
+        IntVarArgs counts;
+        for (int i = cover.size(); i--;) {
+          counts << IntVar(s, 0, x.size());
+        }
+        count(s, x, counts, cover, IPL_DOM);
+        IntVarArgs viols;
+        for (int i = cover.size(); i--;) {
+          viols << expr(s, max(max(0,lbound[i]-counts[i]), 
+            max(0, counts[i]-ubound[i])));
+        }
+        s.viol_vars.push_back(expr(s, sum(viols)));
+      } else {
+        IntVarArgs x = s.arg2intvarargs(ce[0]);
+        IntArgs cover = s.arg2intargs(ce[1]);
+
+        IntArgs lbound = s.arg2intargs(ce[2]);
+        IntArgs ubound = s.arg2intargs(ce[3]);
+        IntSetArgs y(cover.size());
+        for (int i = cover.size(); i--;) y[i] = IntSet(lbound[i], ubound[i]);
+        unshare(s, x);
+        IntPropLevel ipl = s.ann2ipl(ann);
+        if (ipl == IPL_DEF) ipl = IPL_BND;
+        count(s, x, y, cover, ipl);
+      }
     }
 
     void p_minimum(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {

@@ -1986,9 +1986,9 @@ namespace Gecode { namespace FlatZinc {
       rel(*this, total_viol == sum(v));
 
       if (_method == MIN)
-        rel(*this, combined_obj == total_viol * 5000 + iv[_optVar]);
+        rel(*this, combined_obj == total_viol * 100 + iv[_optVar]);
       else if(_method == MAX)
-        rel(*this, combined_obj == total_viol * 5000 - iv[_optVar]);
+        rel(*this, combined_obj == total_viol * 100 - iv[_optVar]);
       else{
         rel(*this, combined_obj == total_viol);
         _method = MIN;
@@ -1996,8 +1996,10 @@ namespace Gecode { namespace FlatZinc {
     } else {
         if (_method == MIN)
           rel(*this, combined_obj == iv[_optVar]);
-        else if(_method == MAX)
+        else if(_method == MAX){
           rel(*this, combined_obj == -iv[_optVar]);
+          _method = MIN;
+        }
     }
     
     switch (_method) {
