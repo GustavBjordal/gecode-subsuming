@@ -789,6 +789,12 @@ namespace Gecode { namespace FlatZinc {
       iv_lns.update(*this, f.iv_lns);
       intVarCount = f.intVarCount;
 
+
+      // viol_vars = f.viol_vars;
+      // for (int i = 0; i < f.viol_vars.size(); i++) {
+      //   viol_vars[i].update(*this, f.viol_vars[i]);
+      // }
+
       total_viol.update(*this, f.total_viol);
       combined_obj.update(*this, f.combined_obj);
 
@@ -1003,7 +1009,7 @@ namespace Gecode { namespace FlatZinc {
   namespace {
     struct ConExprOrder {
       bool operator() (ConExpr* ce0, ConExpr* ce1) {
-        return ce0->args->a.size() < ce1->args->a.size();
+        return (!ce0->ann->hasAtom("soften") && ce1->ann->hasAtom("soften")) || (ce0->args->a.size() < ce1->args->a.size());
       }
     };
   }
@@ -1012,9 +1018,14 @@ namespace Gecode { namespace FlatZinc {
   FlatZincSpace::postConstraints(std::vector<ConExpr*>& ces) {
     ConExprOrder ceo;
     std::sort(ces.begin(), ces.end(), ceo);
+    bool didFixpoint = false;
     for (unsigned int i=0; i<ces.size(); i++) {
       const ConExpr& ce = *ces[i];
       try {
+        if (!didFixpoint && ce.ann->hasAtom("soften")) {
+          didFixpoint = true;
+          status();
+        }
         registry().post(*this, ce);
       } catch (Gecode::Exception& e) {
         throw FlatZinc::Error("Gecode", e.what());
@@ -1979,16 +1990,15 @@ namespace Gecode { namespace FlatZinc {
     
     if(!viol_vars.empty()){
       IntVarArgs v;
-      while (!viol_vars.empty()) {
-        v << viol_vars.back();
-        viol_vars.pop_back();
-      }
+      for (int i = 0; i < viol_vars.size();i++){
+        v << viol_vars[i];
+      }                    
       rel(*this, total_viol == sum(v));
 
       if (_method == MIN)
-        rel(*this, combined_obj == total_viol * 100 + iv[_optVar]);
+        rel(*this, combined_obj == total_viol * 100 + iv[_optVar] * 1);
       else if(_method == MAX)
-        rel(*this, combined_obj == total_viol * 100 - iv[_optVar]);
+        rel(*this, combined_obj == total_viol * 100 - iv[_optVar]*1);
       else{
         rel(*this, combined_obj == total_viol);
         _method = MIN;
@@ -2022,9 +2032,17 @@ namespace Gecode { namespace FlatZinc {
       // else if (_method == MAX)
       //   rel(*this, iv[_optVar], IRT_GR,
       //              static_cast<const FlatZincSpace*>(&s)->iv[_optVar].val());
+      // rel(*this, iv[_optVar], IRT_LE,
+      //              static_cast<const FlatZincSpace*>(&s)->iv[_optVar].val());
       rel(*this, combined_obj, IRT_LE, static_cast<const FlatZincSpace*>(&s)->combined_obj.val());
-      if(static_cast<const FlatZincSpace*>(&s)->total_viol.val() != 0)
-        rel(*this, total_viol, IRT_LE, static_cast<const FlatZincSpace*>(&s)->total_viol.val());
+//      const FlatZincSpace* sp = static_cast<const FlatZincSpace*>(&s);
+//      for (int i = 0; i < sp->viol_vars.size(); i++) {
+//        if ((sp->viol_vars)[i].val() > 0) {
+//          rel(*this, viol_vars[i], IRT_LQ, sp->viol_vars[i].val());
+//        }
+//      }
+    //  if (static_cast<const FlatZincSpace*>(&s)->total_viol.val() != 0)
+    //    rel(*this, total_viol, IRT_LE, static_cast<const FlatZincSpace*>(&s)->total_viol.val());
     } else {
 #ifdef GECODE_HAS_FLOAT_VARS
       if (_method == MIN)

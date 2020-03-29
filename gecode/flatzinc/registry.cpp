@@ -57,6 +57,7 @@ namespace Gecode { namespace FlatZinc {
 
   void
   Registry::post(FlatZincSpace& s, const ConExpr& ce) {
+    std::cout << ce.id << std::endl;
     std::map<std::string,poster>::iterator i = r.find(ce.id);
     if (i == r.end()) {
       throw FlatZinc::Error("Registry",
@@ -311,8 +312,6 @@ namespace Gecode { namespace FlatZinc {
           IntVarArgs iv = s.arg2intvarargs(ce[1]);
           int is = ce[2]->getInt();
         s.viol_vars.push_back(expr(s, max(0, sum(ia, iv) - is))); // violation
-        
-//         s.viol_vars.push_back(expr(s, max(0, sum(ia, iv)))); // violation
       }
       else
       {
