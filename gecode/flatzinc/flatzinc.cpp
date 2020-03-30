@@ -2069,6 +2069,9 @@ namespace Gecode { namespace FlatZinc {
                (_lns > 0) && mi.last()) {
       const FlatZincSpace& last =
         static_cast<const FlatZincSpace&>(*mi.last());
+//      if(PropagatorGroup::soft_subsume.size(*this) > 0 && last.total_viol.val() == 0){
+//        PropagatorGroup::soft_subsume.move(*this, PropagatorGroup::def);
+//      }
       for (unsigned int i=iv_lns.size(); i--;) {
         if (_random(99U) <= _lns) {
           rel(*this, iv_lns[i], IRT_EQ, last.iv_lns[i]);

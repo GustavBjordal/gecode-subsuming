@@ -57,7 +57,8 @@ namespace Gecode { namespace FlatZinc {
 
   void
   Registry::post(FlatZincSpace& s, const ConExpr& ce) {
-    std::cout << ce.id << std::endl;
+    if(ce.ann->hasAtom("soften"))
+      std::cout << ce.id << std::endl;
     std::map<std::string,poster>::iterator i = r.find(ce.id);
     if (i == r.end()) {
       throw FlatZinc::Error("Registry",
@@ -76,10 +77,10 @@ namespace Gecode { namespace FlatZinc {
   namespace {
 
     void p_distinct(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      IntVarArgs va = s.arg2intvarargs(ce[0]);
-      IntPropLevel ipl = s.ann2ipl(ann);
-      unshare(s, va);
-      distinct(s, va, ipl == IPL_DEF ? IPL_BND : ipl);
+        IntVarArgs va = s.arg2intvarargs(ce[0]);
+        IntPropLevel ipl = s.ann2ipl(ann);
+        unshare(s, va);
+        distinct(s, va, ipl == IPL_DEF ? IPL_BND : ipl);
     }
 
     void p_distinctOffset(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
@@ -1047,7 +1048,8 @@ namespace Gecode { namespace FlatZinc {
         count(s, x, counts, cover, IPL_DOM);
         IntVarArgs viols;
         for (int i = cover.size(); i--;) {
-          viols << expr(s, max(max(0,lbound[i]-counts[i]), 
+          viols << expr(s, max(
+            max(0,lbound[i]-counts[i]), 
             max(0, counts[i]-ubound[i])));
         }
         s.viol_vars.push_back(expr(s, sum(viols)));

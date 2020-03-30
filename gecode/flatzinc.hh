@@ -524,7 +524,7 @@ namespace Gecode { namespace FlatZinc {
     std::vector<Gecode::IntVar> viol_vars;
 
     Gecode::IntVar total_viol;
-    /// todo: make private:
+    
     Gecode::IntVar combined_obj;
 
     /// Construct empty space
