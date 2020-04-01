@@ -1892,7 +1892,7 @@ namespace Gecode { namespace FlatZinc {
       while (FlatZincSpace* next_sol = se.next()) {
         delete sol;
         sol = next_sol;
-        out << sol->total_viol.min() << " " << sol->total_viol.max() << std::endl;
+        out << "%% Violation:" << sol->total_viol << " " << sol->total_viol << std::endl;
         if (printAll) {
           sol->print(out, p);
           out << "----------" << std::endl;

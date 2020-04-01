@@ -58,7 +58,7 @@ namespace Gecode { namespace FlatZinc {
   void
   Registry::post(FlatZincSpace& s, const ConExpr& ce) {
     if(ce.ann->hasAtom("soften"))
-      std::cout << ce.id << std::endl;
+      std::cout <<"%% Posting: "<< ce.id << std::endl;
     std::map<std::string,poster>::iterator i = r.find(ce.id);
     if (i == r.end()) {
       throw FlatZinc::Error("Registry",
@@ -275,7 +275,7 @@ namespace Gecode { namespace FlatZinc {
 
     void p_int_lin_eq(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
       if(ann->hasAtom("soften")){
-        std::cout << "Detected soft constraint" << std::endl;
+        std::cout << "%% Detected soft constraint" << std::endl;
         //TODO: change space to subsuming home.
         p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_EQ, ce, ann);
         //Post penalty
@@ -305,7 +305,7 @@ namespace Gecode { namespace FlatZinc {
     void p_int_lin_le(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
       if (ann->hasAtom("soften"))
       {
-        std::cout << "Detected soft constraint" << std::endl;
+        std::cout << "%% Detected soft constraint" << std::endl;
         //TODO: change space to subsuming home.
           p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_LQ, ce, ann);
           //Post penalty
@@ -1027,7 +1027,7 @@ namespace Gecode { namespace FlatZinc {
     void p_global_cardinality_low_up_closed(FlatZincSpace& s, const ConExpr& ce,
                                             AST::Node* ann) {
       if (ann->hasAtom("soften")) {
-        std::cout << "Detected soft gcc_low_up_closed" << std::endl;
+        std::cout << "%% Detected soft gcc_low_up_closed" << std::endl;
 
         IntVarArgs x = s.arg2intvarargs(ce[0]);
         IntArgs cover = s.arg2intargs(ce[1]);
@@ -1039,7 +1039,8 @@ namespace Gecode { namespace FlatZinc {
         unshare(s, x);
         IntPropLevel ipl = s.ann2ipl(ann);
         if (ipl == IPL_DEF) ipl = IPL_BND;
-        count(PropagatorGroup::soft_subsume(s), x, y, cover, ipl);
+        if(!ann->hasAtom("onlyViol"))
+          count(PropagatorGroup::soft_subsume(s), x, y, cover, ipl);
         //Add violation:
         IntVarArgs counts;
         for (int i = cover.size(); i--;) {
