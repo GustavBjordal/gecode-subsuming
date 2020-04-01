@@ -277,7 +277,8 @@ namespace Gecode { namespace FlatZinc {
       if(ann->hasAtom("soften")){
         std::cout << "%% Detected soft constraint" << std::endl;
         //TODO: change space to subsuming home.
-        p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_EQ, ce, ann);
+        if (!ann->hasAtom("onlyViol"))
+          p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_EQ, ce, ann);
         //Post penalty
         IntArgs ia = s.arg2intargs(ce[0]);
         IntVarArgs iv = s.arg2intvarargs(ce[1]);
@@ -307,12 +308,13 @@ namespace Gecode { namespace FlatZinc {
       {
         std::cout << "%% Detected soft constraint" << std::endl;
         //TODO: change space to subsuming home.
+        if (!ann->hasAtom("onlyViol"))
           p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_LQ, ce, ann);
-          //Post penalty
-          IntArgs ia = s.arg2intargs(ce[0]);
-          IntVarArgs iv = s.arg2intvarargs(ce[1]);
-          int is = ce[2]->getInt();
-        s.viol_vars.push_back(expr(s, max(0, sum(ia, iv) - is))); // violation
+        // Post penalty
+        IntArgs ia = s.arg2intargs(ce[0]);
+        IntVarArgs iv = s.arg2intvarargs(ce[1]);
+        int is = ce[2]->getInt();
+        s.viol_vars.push_back(expr(s, max(0, sum(ia, iv) - is)));  // violation
       }
       else
       {
