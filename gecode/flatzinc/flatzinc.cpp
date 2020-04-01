@@ -789,6 +789,8 @@ namespace Gecode { namespace FlatZinc {
       iv_lns.update(*this, f.iv_lns);
       intVarCount = f.intVarCount;
 
+      use_self_subsuming = f.use_self_subsuming;
+      soften_constraints = f.soften_constraints;
 
       // viol_vars = f.viol_vars;
       // for (int i = 0; i < f.viol_vars.size(); i++) {
@@ -852,12 +854,14 @@ namespace Gecode { namespace FlatZinc {
 #endif
     }
 
-  FlatZincSpace::FlatZincSpace(Rnd& random)
+  FlatZincSpace::FlatZincSpace(Rnd& random, const FlatZincOptions& opt)
   :  _initData(new FlatZincSpaceInitData),
     intVarCount(-1), boolVarCount(-1), floatVarCount(-1), setVarCount(-1),
     _optVar(-1), _optVarIsInt(true), _lns(0), _lnsInitialSolution(0),
     _random(random),
     _solveAnnotations(nullptr), needAuxVars(true) {
+    use_self_subsuming = opt.use_self_subsuming();
+    soften_constraints = opt.allow_softening();
     branchInfo.init();
   }
 
@@ -1892,10 +1896,18 @@ namespace Gecode { namespace FlatZinc {
       while (FlatZincSpace* next_sol = se.next()) {
         delete sol;
         sol = next_sol;
-        out << "%% Violation:" << sol->total_viol << " " << sol->total_viol << std::endl;
-        if (printAll) {
-          sol->print(out, p);
-          out << "----------" << std::endl;
+        if (viol_vars.size() > 0) {
+          out << "%% Violation:" << sol->total_viol << " " << sol->total_viol
+              << std::endl;
+          if (sol->total_viol.val() == 0 && printAll) {
+            sol->print(out, p);
+            out << "----------" << std::endl;
+          }
+        } else {
+          if (printAll) {
+            sol->print(out, p);
+            out << "----------" << std::endl;
+          }
         }
         if (--findSol==0)
           goto stopped;

@@ -274,10 +274,10 @@ namespace Gecode { namespace FlatZinc {
     }
 
     void p_int_lin_eq(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      if(ann->hasAtom("soften")){
+      if(s.soften_constraints && ann->hasAtom("soften")){
         std::cout << "%% Detected soft constraint" << std::endl;
         //TODO: change space to subsuming home.
-        if (!ann->hasAtom("onlyViol"))
+        if (s.use_self_subsuming && !ann->hasAtom("onlyViol"))
           p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_EQ, ce, ann);
         //Post penalty
         IntArgs ia = s.arg2intargs(ce[0]);
@@ -304,12 +304,14 @@ namespace Gecode { namespace FlatZinc {
       p_int_lin_CMP_reif(s, IRT_NQ, RM_IMP, ce, ann);
     }
     void p_int_lin_le(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
-      if (ann->hasAtom("soften"))
+      if (s.soften_constraints && ann->hasAtom("soften"))
       {
         std::cout << "%% Detected soft constraint" << std::endl;
         //TODO: change space to subsuming home.
-        if (!ann->hasAtom("onlyViol"))
+        if (s.use_self_subsuming && !ann->hasAtom("onlyViol")){
           p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_LQ, ce, ann);
+          std::cout << "%% Posting self_subsuming" << std::endl;
+        }
         // Post penalty
         IntArgs ia = s.arg2intargs(ce[0]);
         IntVarArgs iv = s.arg2intvarargs(ce[1]);
@@ -1028,7 +1030,7 @@ namespace Gecode { namespace FlatZinc {
 
     void p_global_cardinality_low_up_closed(FlatZincSpace& s, const ConExpr& ce,
                                             AST::Node* ann) {
-      if (ann->hasAtom("soften")) {
+      if (s.soften_constraints && ann->hasAtom("soften")) {
         std::cout << "%% Detected soft gcc_low_up_closed" << std::endl;
 
         IntVarArgs x = s.arg2intvarargs(ce[0]);
@@ -1041,7 +1043,7 @@ namespace Gecode { namespace FlatZinc {
         unshare(s, x);
         IntPropLevel ipl = s.ann2ipl(ann);
         if (ipl == IPL_DEF) ipl = IPL_BND;
-        if(!ann->hasAtom("onlyViol"))
+        if(s.use_self_subsuming && !ann->hasAtom("onlyViol"))
           count(PropagatorGroup::soft_subsume(s), x, y, cover, ipl);
         //Add violation:
         IntVarArgs counts;

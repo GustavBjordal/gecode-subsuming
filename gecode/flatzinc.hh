@@ -261,46 +261,68 @@ namespace Gecode { namespace FlatZinc {
       Gecode::Driver::BoolOption        _profiler_info; ///< Whether solution information should be sent to the CP-profiler
 
 #endif
+      Gecode::Driver::BoolOption _use_self_subsuming;
+      Gecode::Driver::BoolOption _allow_softening;
 
       //@}
   public:
     /// Constructor
-    FlatZincOptions(const char* s)
-    : Gecode::BaseOptions(s),
-      _solutions("n","number of solutions (0 = all, -1 = one/best)",-1),
-      _allSolutions("a", "return all solutions (equal to -n 0)"),
-      _threads("p","number of threads (0 = #processing units)",
-               Gecode::Search::Config::threads),
-      _free("f", "free search, no need to follow search-specification"),
-      _decay("decay","decay factor",0.99),
-      _c_d("c-d","recomputation commit distance",Gecode::Search::Config::c_d),
-      _a_d("a-d","recomputation adaption distance",Gecode::Search::Config::a_d),
-      _node("node","node cutoff (0 = none, solution mode)"),
-      _fail("fail","failure cutoff (0 = none, solution mode)"),
-      _time("time","time (in ms) cutoff (0 = none, solution mode)"),
-      _time_limit("t","time (in ms) cutoff (0 = none, solution mode)"),
-      _seed("r","random seed",0),
-      _restart("restart","restart sequence type",RM_NONE),
-      _r_base("restart-base","base for geometric restart sequence",1.5),
-      _r_scale("restart-scale","scale factor for restart sequence",250),
-      _nogoods("nogoods","whether to use no-goods from restarts",false),
-      _nogoods_limit("nogoods-limit","depth limit for no-good extraction",
-                     Search::Config::nogoods_limit),
-      _interrupt("interrupt","whether to catch Ctrl-C (true) or not (false)",
-                 true),
-      _step("step","step distance for float optimization",0.0),
-      _mode("mode","how to execute script",Gecode::SM_SOLUTION),
-      _stat("s","emit statistics"),
-      _output("o","file to send output to")
-
+   FlatZincOptions(const char* s)
+       : Gecode::BaseOptions(s),
+         _solutions("n", "number of solutions (0 = all, -1 = one/best)", -1),
+         _allSolutions("a", "return all solutions (equal to -n 0)"),
+         _threads("p",
+                  "number of threads (0 = #processing units)",
+                  Gecode::Search::Config::threads),
+         _free("f", "free search, no need to follow search-specification"),
+         _decay("decay", "decay factor", 0.99),
+         _c_d("c-d",
+              "recomputation commit distance",
+              Gecode::Search::Config::c_d),
+         _a_d("a-d",
+              "recomputation adaption distance",
+              Gecode::Search::Config::a_d),
+         _node("node", "node cutoff (0 = none, solution mode)"),
+         _fail("fail", "failure cutoff (0 = none, solution mode)"),
+         _time("time", "time (in ms) cutoff (0 = none, solution mode)"),
+         _time_limit("t", "time (in ms) cutoff (0 = none, solution mode)"),
+         _seed("r", "random seed", 0),
+         _restart("restart", "restart sequence type", RM_NONE),
+         _r_base("restart-base", "base for geometric restart sequence", 1.5),
+         _r_scale("restart-scale", "scale factor for restart sequence", 250),
+         _nogoods("nogoods", "whether to use no-goods from restarts", false),
+         _nogoods_limit("nogoods-limit",
+                        "depth limit for no-good extraction",
+                        Search::Config::nogoods_limit),
+         _interrupt("interrupt",
+                    "whether to catch Ctrl-C (true) or not (false)",
+                    true),
+         _step("step", "step distance for float optimization", 0.0),
+         _mode("mode", "how to execute script", Gecode::SM_SOLUTION),
+         _stat("s", "emit statistics"),
+         _output("o", "file to send output to"),
+         _use_self_subsuming("selfsubsuming",
+                             "Use selfsubsuming propagators when softening",
+                             true),
+         _allow_softening(
+             "soften",
+             "Allow annotated constraints to be automatically softened",
+             true)
 #ifdef GECODE_HAS_CPPROFILER
-      ,
-      _profiler_id("cpprofiler-id", "use this execution id with cpprofiler", 0),
-      _profiler_port("cpprofiler-port", "connect to cpprofiler on this port", 6565),
-      _profiler_info("cpprofiler-info", "send solution information to cpprofiler", false)
+         ,
+         _profiler_id("cpprofiler-id",
+                      "use this execution id with cpprofiler",
+                      0),
+         _profiler_port("cpprofiler-port",
+                        "connect to cpprofiler on this port",
+                        6565),
+         _profiler_info("cpprofiler-info",
+                        "send solution information to cpprofiler",
+                        false)
 
 #endif
-    {
+
+   {
       _mode.add(Gecode::SM_SOLUTION, "solution");
       _mode.add(Gecode::SM_STAT, "stat");
       _mode.add(Gecode::SM_GIST, "gist");
@@ -327,7 +349,9 @@ namespace Gecode { namespace FlatZinc {
       add(_profiler_port);
       add(_profiler_info);
 #endif
-    }
+      add(_use_self_subsuming);
+      add(_allow_softening);
+   }
 
     void parse(int& argc, char* argv[]) {
       Gecode::BaseOptions::parse(argc,argv);
@@ -387,7 +411,8 @@ namespace Gecode { namespace FlatZinc {
     bool profiler_info(void) const { return _profiler_info.value(); }
 
 #endif
-
+    bool use_self_subsuming(void) const { return _use_self_subsuming.value(); }
+    bool allow_softening(void) const { return _allow_softening.value(); }
     void allSolutions(bool b) { _allSolutions.value(b); }
   };
 
@@ -526,9 +551,11 @@ namespace Gecode { namespace FlatZinc {
     Gecode::IntVar total_viol;
     
     Gecode::IntVar combined_obj;
+    bool use_self_subsuming;
+    bool soften_constraints;
 
     /// Construct empty space
-    FlatZincSpace(Rnd& random = defrnd);
+    FlatZincSpace(Rnd& random = defrnd, const FlatZincOptions& opt=nullptr);
 
     /// Destructor
     ~FlatZincSpace(void);
@@ -686,8 +713,11 @@ namespace Gecode { namespace FlatZinc {
    */
   GECODE_FLATZINC_EXPORT
   FlatZincSpace* parse(const std::string& fileName,
-                       Printer& p, std::ostream& err = std::cerr,
-                       FlatZincSpace* fzs=nullptr, Rnd& rnd=defrnd);
+                       Printer& p,
+                       std::ostream& err = std::cerr,
+                       FlatZincSpace* fzs = nullptr,
+                       Rnd& rnd = defrnd,
+                       const FlatZincOptions& opt=nullptr);
 
   /**
    * \brief Parse FlatZinc from \a is into \a fzs and return it.
@@ -697,7 +727,7 @@ namespace Gecode { namespace FlatZinc {
   GECODE_FLATZINC_EXPORT
   FlatZincSpace* parse(std::istream& is,
                        Printer& p, std::ostream& err = std::cerr,
-                       FlatZincSpace* fzs=nullptr, Rnd& rnd=defrnd);
+                       FlatZincSpace* fzs=nullptr, Rnd& rnd=defrnd, const FlatZincOptions& opt=nullptr);
 
 }}
 
