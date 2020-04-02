@@ -10,10 +10,11 @@ mkdir -p $ROOT_DIR/results/hard
 
 TIME_LIMIT=$3
 
+ARGS="--solver gecode.soft --output-time -s -t $TIME_LIMIT";
+
 run_hard () {
   for f in $ROOT_DIR/fzn/*.fzn; do
-    local ARGS="--solver gecode.soft --output-time -t $TIME_LIMIT";
-    $MZN_PATH $ARGS --fzn-flags "-soften false" $f > "$ROOT_DIR/results/hard/$(basename $f .fzn).txt";
+    $MZN_PATH $ARGS --fzn-flags "-soften false" $f > "$ROOT_DIR/results/hard/$(basename $f .fzn).txt" 2>&1 
   done
 }
 
@@ -21,9 +22,8 @@ run_hard () {
 run_soft () {
   for f in $ROOT_DIR/fzn/*.fzn; do
     mkdir -p "$ROOT_DIR/results/soft/$(basename $f .fzn)"
-    local ARGS="--solver gecode.soft --output-time -t $TIME_LIMIT"
     for i in {1..10}; do
-      $MZN_PATH $ARGS --fzn-flags "-restart constant -r $RANDOM -selfsubsuming false" $f > "$ROOT_DIR/results/soft/$(basename $f .fzn)/$i.txt" &
+      $MZN_PATH $ARGS --fzn-flags "-restart constant -r $RANDOM -selfsubsuming false" $f > "$ROOT_DIR/results/soft/$(basename $f .fzn)/$i.txt" 2>&1  &
     done
     wait
   done
@@ -32,9 +32,8 @@ run_soft () {
 run_subsuming () {
   for f in $ROOT_DIR/fzn/*.fzn; do
     mkdir -p "$ROOT_DIR/results/subsuming/$(basename $f .fzn)"
-    local ARGS="--solver gecode.soft --output-time -t $TIME_LIMIT"
     for i in {1..10}; do
-      $MZN_PATH $ARGS --fzn-flags "-restart constant -r $RANDOM" $f > "$ROOT_DIR/results/subsuming/$(basename $f .fzn)/$i.txt"&
+      $MZN_PATH $ARGS --fzn-flags "-restart constant -r $RANDOM" $f > "$ROOT_DIR/results/subsuming/$(basename $f .fzn)/$i.txt" 2>&1 &
     done
     wait
   done
