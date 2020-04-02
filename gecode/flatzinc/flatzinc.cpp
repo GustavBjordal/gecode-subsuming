@@ -48,7 +48,6 @@
 #include <limits>
 #include <unordered_set>
 
-
 namespace std {
 
   /// Hashing for tuple sets
@@ -1011,11 +1010,15 @@ namespace Gecode { namespace FlatZinc {
 #endif
 
   namespace {
-    struct ConExprOrder {
-      bool operator() (ConExpr* ce0, ConExpr* ce1) {
-        return (!ce0->ann->hasAtom("soften") && ce1->ann->hasAtom("soften")) || (ce0->args->a.size() < ce1->args->a.size());
+  struct ConExprOrder {
+    bool operator()(ConExpr* ce0, ConExpr* ce1) {
+      if (ce0->ann == nullptr || ce1->ann == nullptr ||
+          ce0->ann->hasAtom("soften") == ce1->ann->hasAtom("soften")) {
+        return ce0->args->a.size() < ce1->args->a.size();
       }
-    };
+      return ce0->ann->hasAtom("soften") < ce1->ann->hasAtom("soften");
+    }
+  };
   }
 
   void
