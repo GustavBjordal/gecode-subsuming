@@ -57,8 +57,8 @@ namespace Gecode { namespace FlatZinc {
 
   void
   Registry::post(FlatZincSpace& s, const ConExpr& ce) {
-    if(ce.ann->hasAtom("soften"))
-      std::cout <<"%% Posting: "<< ce.id << std::endl;
+    // if(ce.ann->hasAtom("soften"))
+      // std::cout <<"%% Posting: "<< ce.id << std::endl;
     std::map<std::string,poster>::iterator i = r.find(ce.id);
     if (i == r.end()) {
       throw FlatZinc::Error("Registry",
@@ -275,7 +275,7 @@ namespace Gecode { namespace FlatZinc {
 
     void p_int_lin_eq(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
       if(s.soften_constraints && ann->hasAtom("soften")){
-        std::cout << "%% Detected soft constraint" << std::endl;
+        // std::cout << "%% Detected soft constraint" << std::endl;
         //TODO: change space to subsuming home.
         if (s.use_self_subsuming && !ann->hasAtom("onlyViol"))
           p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_EQ, ce, ann);
@@ -306,17 +306,19 @@ namespace Gecode { namespace FlatZinc {
     void p_int_lin_le(FlatZincSpace& s, const ConExpr& ce, AST::Node* ann) {
       if (s.soften_constraints && ann->hasAtom("soften"))
       {
-        std::cout << "%% Detected soft constraint" << std::endl;
+        // std::cout << "%% Detected soft constraint" << std::endl;
         //TODO: change space to subsuming home.
         if (s.use_self_subsuming && !ann->hasAtom("onlyViol")){
           p_int_lin_CMP(PropagatorGroup::soft_subsume(s), IRT_LQ, ce, ann);
-          std::cout << "%% Posting self_subsuming" << std::endl;
+          // std::cout << "%% Posting self_subsuming" << std::endl;
         }
         // Post penalty
         IntArgs ia = s.arg2intargs(ce[0]);
         IntVarArgs iv = s.arg2intvarargs(ce[1]);
         int is = ce[2]->getInt();
-        s.viol_vars.push_back(expr(s, max(0, sum(ia, iv) - is)));  // violation
+        IntVar viol =
+            expr(PropagatorGroup::penalties(s), max(0, sum(ia, iv) - is));
+        s.viol_vars.push_back(viol);  // violation
       }
       else
       {

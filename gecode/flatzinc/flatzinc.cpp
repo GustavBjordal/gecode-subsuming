@@ -792,7 +792,7 @@ namespace Gecode { namespace FlatZinc {
       use_self_subsuming = f.use_self_subsuming;
       soften_constraints = f.soften_constraints;
 
-      // viol_vars = f.viol_vars;
+      // viol_vars.resize(f.viol_vars.size());
       // for (int i = 0; i < f.viol_vars.size(); i++) {
       //   viol_vars[i].update(*this, f.viol_vars[i]);
       // }
@@ -1912,7 +1912,7 @@ namespace Gecode { namespace FlatZinc {
         if (--findSol==0)
           goto stopped;
       }
-      if (sol && !printAll) {
+      if (sol && !printAll && (viol_vars.size() == 0 || sol->total_viol.val() == 0)) {
         sol->print(out, p);
         out << "----------" << std::endl;
       }
@@ -1999,7 +1999,6 @@ namespace Gecode { namespace FlatZinc {
                       const FlatZincOptions& opt, Support::Timer& t_total) {
     // Update objective var to consider violation vars.
     // trace(*this, iv);
-    
     if(!viol_vars.empty()){
       IntVarArgs v;
       for (int i = 0; i < viol_vars.size();i++){
@@ -2008,9 +2007,9 @@ namespace Gecode { namespace FlatZinc {
       rel(*this, total_viol == sum(v));
 
       if (_method == MIN)
-        rel(*this, combined_obj == total_viol * 100 + iv[_optVar] * 1);
+        rel(*this, combined_obj == total_viol * 200 + iv[_optVar] * 1);
       else if(_method == MAX)
-        rel(*this, combined_obj == total_viol * 100 - iv[_optVar]*1);
+        rel(*this, combined_obj == total_viol * 200 - iv[_optVar] * 1);
       else{
         rel(*this, combined_obj == total_viol);
         _method = MIN;
@@ -2047,12 +2046,13 @@ namespace Gecode { namespace FlatZinc {
       // rel(*this, iv[_optVar], IRT_LE,
       //              static_cast<const FlatZincSpace*>(&s)->iv[_optVar].val());
       rel(*this, combined_obj, IRT_LE, static_cast<const FlatZincSpace*>(&s)->combined_obj.val());
-//      const FlatZincSpace* sp = static_cast<const FlatZincSpace*>(&s);
-//      for (int i = 0; i < sp->viol_vars.size(); i++) {
-//        if ((sp->viol_vars)[i].val() > 0) {
-//          rel(*this, viol_vars[i], IRT_LQ, sp->viol_vars[i].val());
-//        }
-//      }
+    //  const FlatZincSpace* sp = static_cast<const FlatZincSpace*>(&s);
+    //  for (int i = 0; i < sp->viol_vars.size(); i++) {
+    //    if ((sp->viol_vars)[i].val() > 0) {
+    //      rel(*this, viol_vars[i], IRT_LE, sp->viol_vars[i].val());
+    //    }
+    //  }
+
     //  if (static_cast<const FlatZincSpace*>(&s)->total_viol.val() != 0)
     //    rel(*this, total_viol, IRT_LE, static_cast<const FlatZincSpace*>(&s)->total_viol.val());
     } else {
@@ -2081,9 +2081,9 @@ namespace Gecode { namespace FlatZinc {
                (_lns > 0) && mi.last()) {
       const FlatZincSpace& last =
         static_cast<const FlatZincSpace&>(*mi.last());
-//      if(PropagatorGroup::soft_subsume.size(*this) > 0 && last.total_viol.val() == 0){
-//        PropagatorGroup::soft_subsume.move(*this, PropagatorGroup::def);
-//      }
+     if(PropagatorGroup::soft_subsume.size(*this) > 0 && last.total_viol.val() == 0){
+       PropagatorGroup::def.move(*this, PropagatorGroup::soft_subsume);
+     }
       for (unsigned int i=iv_lns.size(); i--;) {
         if (_random(99U) <= _lns) {
           rel(*this, iv_lns[i], IRT_EQ, last.iv_lns[i]);

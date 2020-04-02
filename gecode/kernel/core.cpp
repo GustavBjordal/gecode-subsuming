@@ -222,7 +222,8 @@ void Space::post(const PostInfo& pi) {
 
 SpaceStatus Space::status(StatusStatistics& stat) {
   // Check whether space is failed
-  if (failed()) return SS_FAILED;
+  if (failed())
+    return SS_FAILED;
   assert(pc.p.active <= &pc.p.queue[PropCost::AC_MAX + 1]);
   Propagator* p;
   // Check whether space is stable but not failed
