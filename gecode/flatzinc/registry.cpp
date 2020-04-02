@@ -317,7 +317,7 @@ namespace Gecode { namespace FlatZinc {
         IntVarArgs iv = s.arg2intvarargs(ce[1]);
         int is = ce[2]->getInt();
         IntVar viol =
-            expr(PropagatorGroup::penalties(s), max(0, sum(ia, iv) - is));
+            expr(s, max(0, sum(ia, iv) - is));
         s.viol_vars.push_back(viol);  // violation
       }
       else
