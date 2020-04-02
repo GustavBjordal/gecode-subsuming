@@ -1033,7 +1033,7 @@ namespace Gecode { namespace FlatZinc {
     void p_global_cardinality_low_up_closed(FlatZincSpace& s, const ConExpr& ce,
                                             AST::Node* ann) {
       if (s.soften_constraints && ann->hasAtom("soften")) {
-        std::cout << "%% Detected soft gcc_low_up_closed" << std::endl;
+        // std::cout << "%% Detected soft gcc_low_up_closed" << std::endl;
 
         IntVarArgs x = s.arg2intvarargs(ce[0]);
         IntArgs cover = s.arg2intargs(ce[1]);
