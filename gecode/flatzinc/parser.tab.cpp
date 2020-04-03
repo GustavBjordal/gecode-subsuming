@@ -457,7 +457,7 @@ namespace Gecode { namespace FlatZinc {
     std::string s = string(istreambuf_iterator<char>(file),
                            istreambuf_iterator<char>());
     if (fzs == NULL) {
-      fzs = new FlatZincSpace(rnd);
+      fzs = new FlatZincSpace(rnd, opt);
     }
     ParserState pp(s, err, fzs);
 #endif
