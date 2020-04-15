@@ -145,10 +145,10 @@ namespace Gecode { namespace FlatZinc {
       if (ce[0]->isIntVar()) {
         if (ce[1]->isIntVar()) {
           rel(s, s.arg2IntVar(ce[0]), irt, s.arg2IntVar(ce[1]),
-                 Reify(s.arg2BoolVar(ce[2]), rm), s.ann2ipl(ann));
+              Reify(s.arg2BoolVar(ce[2]), rm), s.ann2ipl(ann));
         } else {
           rel(s, s.arg2IntVar(ce[0]), irt, ce[1]->getInt(),
-                 Reify(s.arg2BoolVar(ce[2]), rm), s.ann2ipl(ann));
+              Reify(s.arg2BoolVar(ce[2]), rm), s.ann2ipl(ann));
         }
       } else {
         rel(s, s.arg2IntVar(ce[1]), swap(irt), ce[0]->getInt(),
