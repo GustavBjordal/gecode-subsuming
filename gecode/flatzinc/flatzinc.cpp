@@ -2050,12 +2050,14 @@ namespace Gecode { namespace FlatZinc {
       // rel(*this, iv[_optVar], IRT_LE,
       //              static_cast<const FlatZincSpace*>(&s)->iv[_optVar].val());
       rel(*this, combined_obj, IRT_LE, static_cast<const FlatZincSpace*>(&s)->combined_obj.val());
-    //  const FlatZincSpace* sp = static_cast<const FlatZincSpace*>(&s);
-    //  for (int i = 0; i < sp->viol_vars.size(); i++) {
-    //    if ((sp->viol_vars)[i].val() > 0) {
-    //      rel(*this, viol_vars[i], IRT_LE, sp->viol_vars[i].val());
-    //    }
-    //  }
+      
+      //simple VO-LNS-ish:
+//      const FlatZincSpace* sp = static_cast<const FlatZincSpace*>(&s);
+//      for (int i = 0; i < sp->viol_vars.size(); i++) {
+//        if ((sp->viol_vars)[i].val() > 0) {
+//          rel(*this, viol_vars[i], IRT_LE, sp->viol_vars[i].val());
+//        }
+//      }
 
     //  if (static_cast<const FlatZincSpace*>(&s)->total_viol.val() != 0)
     //    rel(*this, total_viol, IRT_LE, static_cast<const FlatZincSpace*>(&s)->total_viol.val());

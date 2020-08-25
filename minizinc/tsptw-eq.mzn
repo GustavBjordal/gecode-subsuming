@@ -51,7 +51,7 @@ include "gecode.mzn";
 solve 
 ::relax_and_reconstruct(pred, 70)
 :: seq_search([
-% int_search(pred_dist, max_regret, indomain_min, complete),
+% int_search([distance[pred[i],i] | i in Cities where i != depot], max_regret, indomain_min, complete),
 int_search(pred, dom_w_deg, indomain_random, complete),
                int_search(arrival_time,input_order, indomain_max, complete),
               ]) 

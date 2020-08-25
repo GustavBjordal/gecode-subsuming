@@ -3194,4 +3194,4 @@ constraint int_lin_le(X_INTRODUCED_2802_,[X_INTRODUCED_2196_,X_INTRODUCED_2197_,
 constraint int_lin_le(X_INTRODUCED_2802_,[X_INTRODUCED_2197_,X_INTRODUCED_2198_,X_INTRODUCED_2199_,X_INTRODUCED_2200_,X_INTRODUCED_2201_],1):: soften;
 constraint int_lin_le(X_INTRODUCED_2802_,[X_INTRODUCED_2198_,X_INTRODUCED_2199_,X_INTRODUCED_2200_,X_INTRODUCED_2201_,X_INTRODUCED_2202_],1):: soften;
 constraint int_lin_le(X_INTRODUCED_2802_,[X_INTRODUCED_2199_,X_INTRODUCED_2200_,X_INTRODUCED_2201_,X_INTRODUCED_2202_,X_INTRODUCED_2203_],1):: soften;
-solve :: int_search(seq_confs,first_fail,indomain_min,complete) satisfy;
+solve :: relax_and_reconstruct(seq_confs,60) :: int_search(seq_confs,dom_w_deg,indomain_min,complete) satisfy;
