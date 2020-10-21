@@ -1,4 +1,12 @@
-# Gecode - Generic Constraint Development Environment
+# Non-failing Propgators
+
+This is a fork of Gecode that implements non-failing propagators.
+
+The code is currently under development and can contain bugs.
+
+Original Gecode readme follows:
+
+## Gecode - Generic Constraint Development Environment
 
 ![Gecode](images/gecode-logo-100.png "Gecode")
 
@@ -13,7 +21,7 @@ modular and extensible.
 [develop](https://github.com/Gecode/gecode/tree/develop): 
 [![Build Status develop](https://api.travis-ci.org/Gecode/gecode.svg?branch=develop)](https://travis-ci.org/Gecode/gecode)
 
-## Getting All the Info You Need...
+### Getting All the Info You Need...
 
 You can find lots of information on
 [Gecode's webpages](https://gecode.github.io),
@@ -23,18 +31,18 @@ In particular,
 Gecode comes with
 [extensive tutorial and reference documentation](https://gecode.github.io/documentation.html).
 
-## Download Gecode
+### Download Gecode
 
 Gecode packages (source, Apple MacOS, Microsoft Windows) can be downloaded from
 [GitHub](https://github.com/Gecode/gecode/releases)
 or
 [Gecode's webpages](https://gecode.github.io/download.html).
 
-## Contributing to Gecode
+### Contributing to Gecode
 
 We happily accept smaller contributions and fixes, please provide them as pull requests against the develop branch. For larger contributions, please get in touch.
 
-## Gecode License
+### Gecode License
 
 Gecode is licensed under the
 [MIT license](https://github.com/Gecode/gecode/blob/master/LICENSE).
